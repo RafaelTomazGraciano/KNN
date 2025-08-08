@@ -1,36 +1,53 @@
-/* KNN */
-
-# include <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
-int main(){
-  float a, b, c, d, k, w, x, y, z, dist; 
-  int classeR, classe, classeP, acerto = 0;
+int main() {
+    float test_f1, test_f2, test_f3, test_f4;
+    int test_class, predicted_class;
+    int correct = 0, total = 0;
 
-  /*Abrindo arquivos*/
-  FILE *arquivoTeste = fopen("IrisTeste.txt","r");
-  FILE *arquivoTreino = fopen("IrisTreino.txt","r");
-  while(!feof(arquivoTeste)){
-    k = 1; // instanciando k sendo igual a 1
-  fscanf(arquivoTeste,"%f,%f,%f,%f,%d",&a,&b,&c,&d,&classeR); // leitura de arquivo
-  arquivoTreino = fopen("IrisTreino.txt","r"); // abrindo arquivo
-  while(!feof(arquivoTreino)){
-    fscanf(arquivoTreino,"%f,%f,%f,%f,%d",&w,&x,&y,&z,&classe); // leitura de arquivo
-    dist = sqrt(pow(w-a, 2)+ pow(x-b, 2) + pow(y-c, 2) + pow(z-d,2)); // calculando a distancia
-    /*Com o if se instancia as classes*/
-    if(dist < k){
-      k = dist;
-      classeP = classe;
+
+    FILE *testFile = fopen("IrisTest.txt", "r");
+    if (!testFile) {
+        printf("Error opening IrisTest.txt\n");
+        return 1;
     }
-  }
-    /*Conta quantidade de acertos*/
-     if(classeP == classeR){
-     acerto++;
-  fclose(arquivoTreino);
-  }
-   }
-   fclose(arquivoTeste);
-   printf("\nQuantidae de Acertos: %d", acerto);
-   printf("\nPorcentagem de Acertos: %d", (acerto/45)*100);
-  return 0;
+
+    // For each test sample
+    while (fscanf(testFile, "%f,%f,%f,%f,%d", &test_f1, &test_f2, &test_f3, &test_f4, &test_class) == 5) {
+        float min_dist = 1e9;
+        int min_class = -1;
+
+        FILE *trainFile = fopen("IrisTrain.txt", "r");
+        if (!trainFile) {
+            printf("Error opening IrisTrain.txt\n");
+            fclose(testFile);
+            return 1;
+        }
+
+        float train_f1, train_f2, train_f3, train_f4;
+        int train_class;
+
+        // For each train sample, find the nearest neighbor
+        while (fscanf(trainFile, "%f,%f,%f,%f,%d", &train_f1, &train_f2, &train_f3, &train_f4, &train_class) == 5) {
+            float dist = sqrt(pow(train_f1 - test_f1, 2) + pow(train_f2 - test_f2, 2) +
+                             pow(train_f3 - test_f3, 2) + pow(train_f4 - test_f4, 2));
+            if (dist < min_dist) {
+                min_dist = dist;
+                min_class = train_class;
+            }
+        }
+        fclose(trainFile);
+
+        if (min_class == test_class) {
+            correct++;
+        }
+        total++;
+    }
+    fclose(testFile);
+
+    printf("\nNumber of Correct Predictions: %d", correct);
+    printf("\nAccuracy: %.2f%%\n", (total > 0) ? (100.0 * correct / total) : 0.0);
+    return 0;
 }
